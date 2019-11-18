@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ProjectControl.Models.Contexts;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -10,6 +11,8 @@ namespace ProjectControl.Controllers
     {
         public ActionResult Index()
         {
+            DatabaseContext db = new DatabaseContext();
+            ViewBag.waiting = db.Tasks.Where(x => !x.IsAccepted).ToList().Count;
             return View();
         }
 
@@ -18,8 +21,9 @@ namespace ProjectControl.Controllers
             return View();
         }
 
-        public ActionResult Tasks()
+        public ActionResult Tasks(bool showNew = false)
         {
+            ViewBag.New = showNew;
             return View();
         }
 

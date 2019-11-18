@@ -9,8 +9,8 @@
     getHtml() {
         let html = "";
 
-        html += "<a href='#' class='button' onclick='first()'>First</a>";
-        html += "<a href='#' class='button' onclick='previus()'>Previus</a>";
+        html += "<a href='#' class='button' onclick='first(); return false;'>First</a>";
+        html += "<a href='#' class='button' onclick='previus(); return false;'>Previus</a>";
 
         let pageCount = Math.ceil(this.array.length / this.perPage);
 
@@ -34,15 +34,15 @@
             i_ = 1;
 
         for (let i = i_; i < this.currentPage; i++)
-            html += "<a href='#' class='button' onclick='page(" + i + ")'>" + i + "</a>";
+            html += "<a href='#' class='button' onclick='page(" + i + "); return false;'>" + i + "</a>";
 
         html += "<span class='button current-page'>" + this.currentPage + "</span>";
 
         for (let i = this.currentPage + 1; i < this.currentPage + 1 + pageOffsetRight + this.buttonsOffset && i <= pageCount; i++)
-            html += "<a href='#' class='button' onclick='page(" + i + ")'>" + i + "</a>";
+            html += "<a href='#' class='button' onclick='page(" + i + "); return false;'>" + i + "</a>";
 
-        html += "<a href='#' class='button' onclick='next()'>Next</a>";
-        html += "<a href='#' class='button' onclick='last()'>Last</a>";
+        html += "<a href='#' class='button' onclick='next(); return false;'>Next</a>";
+        html += "<a href='#' class='button' onclick='last(); return false;'>Last</a>";
 
         return html;
     }

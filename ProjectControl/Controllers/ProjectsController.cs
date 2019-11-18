@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using ProjectControl.Models;
+using System.Diagnostics;
 
 namespace ProjectControl.Controllers
 {
@@ -54,7 +55,7 @@ namespace ProjectControl.Controllers
             return responce;
         }
 
-        public ProjectResponce Get(string title, string creator)
+        public ProjectResponce Get(string title, string creator, bool? isCanAdd)
         {
             ProjectResponce responce = new ProjectResponce();
             responce.StatusCode = 200;
@@ -70,7 +71,11 @@ namespace ProjectControl.Controllers
                     title = "";
                 if (string.IsNullOrWhiteSpace(creator))
                     creator = "";
-                responce.Projects.AddRange(db.Projects.Where(x => x.Name.Contains(title) && x.CreatorLogin.Contains(creator)));
+
+                if (isCanAdd != null)
+                    responce.Projects.AddRange(db.Projects.ToList().Where(x => x.Name.Contains(title) && x.CreatorLogin.Contains(creator) && x.IsUsersCanAddTask == isCanAdd));
+                else
+                    responce.Projects.AddRange(db.Projects.Where(x => x.Name.Contains(title) && x.CreatorLogin.Contains(creator)));
             }
 
             return responce;

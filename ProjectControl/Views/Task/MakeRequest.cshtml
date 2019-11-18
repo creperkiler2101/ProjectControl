@@ -1,0 +1,111 @@
+﻿@if (UserControll.LoggedAs != null)
+{
+    <h2>Make Request</h2>
+    <div id="form">
+        <form id="request_form">
+            <div class="input-container">
+                <div class="input-box">
+                    <h3>Project</h3>
+                    <select id="project"></select>
+                </div>
+                <div class="input-box">
+                    <h3>Title</h3>
+                    <input type="text" id="title" />
+                </div>
+                <div class="input-box">
+                    <h3>Description</h3>
+                    <textarea id="description"></textarea>
+                </div>
+                <div class="input-box">
+                    <h3>Start time</h3>
+                    <input type="datetime-local" id="start-time" />
+                </div>
+                <div class="input-box">
+                    <h3>End time</h3>
+                    <input type="datetime-local" id="end-time" />
+                </div>
+                <input type="submit" value="Make request" />
+                <a href="../../Task/Index" class="button">My requests</a>
+            </div>
+            <div class="error-container">
+
+            </div>
+        </form>
+    </div>
+    <div id="success" style="display: none">
+        <h4>Request sended!</h4>
+        <a href="../../Task/Index" class="button">My requests</a>
+    </div>
+    <script>
+        @{
+            string domain = Request.Url.Scheme + System.Uri.SchemeDelimiter + Request.Url.Host + (Request.Url.IsDefaultPort ? "" : ":" + Request.Url.Port);
+        }
+        const url = '@domain/api/tasks';
+        const projectUrl = '@domain/api/projects';
+
+        function getProjects() {
+            $.ajax({
+                url: projectUrl + "?isCanAdd=true&title=&creator=",
+                method: "get",
+                dataType: "json"
+            }).done(function (data) {
+                if (data.StatusCode === 200) {
+                    let html = "";
+                    data.Projects.forEach(function (obj) {
+                        html += "<option value='" + obj.Id + "'>" + obj.Name + "</option>";
+                    });
+                    $("#project").html(html);
+                }}).fail(function (data) {
+                    getProjects();
+            });
+        }
+        getProjects();
+
+        $("#request_form").submit(function (e) {
+            e.preventDefault();
+
+            let name = $("#title").val();
+            let description = $("#description").val();
+            let start = $("#start-time").val();
+            let end = $("#end-time").val();
+            let project = $("#project option:selected").val();
+
+            let data = {
+                "Name": name,
+                "Description": description,
+                "StartTime": start,
+                "EndTime": end,
+                "ProjectId": project
+            };
+
+            $.ajax({
+                url: url,
+                data: JSON.stringify(data),
+                contentType: "application/json",
+                method: "post",
+                dataType: "json"
+            }).done(function (data) {
+                if (data.StatusCode === 200) {
+                    showSuccess();
+                }
+                else {
+                    let html = "";
+                    data.ErrorMessage.forEach(function (error) {
+                        html += `<p>${error}</p>`;
+                    });
+                    $(".error-container").get(0).innerHTML = html;
+                }
+            });
+        });
+
+        function showSuccess() {
+            $("#form").hide("fast");
+            $("#success").show("fast");
+        }
+    </script>
+}
+else
+{
+    <h2>No access</h2>
+}
+

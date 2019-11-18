@@ -2,7 +2,7 @@
 {
     <h2>Tasks</h2>
     <div>
-        <a href="#" class="button" onclick="showInsert()" id="insert-btn">Add new</a>
+        <a href="#" class="button" onclick="showInsert(); return false;" id="insert-btn">Add new</a>
     </div>
     <div id="insert" style="display: none;">
         <h4>Add new</h4>
@@ -23,11 +23,11 @@
                 </div>
                 <div class="input-box">
                     <h3>Start time</h3>
-                    <input type="datetime" id="start-time-insert" />
+                    <input type="datetime-local" id="start-time-insert" />
                 </div>
                 <div class="input-box">
                     <h3>End time</h3>
-                    <input type="datetime" id="end-time-insert" />
+                    <input type="datetime-local" id="end-time-insert" />
                 </div>
                 <div class="checkbox-group">
                     <label class="checkbox">
@@ -37,7 +37,7 @@
                     </label>
                 </div>
                 <input type="submit" value="Add" />
-                <a href="#" class="button" onclick="hideInsert()">Hide</a>
+                <a href="#" class="button" onclick="hideInsert(); return false;">Hide</a>
             </div>
             <div class="error-container"></div>
         </form>
@@ -62,11 +62,11 @@
                 </div>
                 <div class="input-box">
                     <h3>Start time</h3>
-                    <input type="datetime" id="start-time-edit" />
+                    <input type="datetime-local" id="start-time-edit" />
                 </div>
                 <div class="input-box">
                     <h3>End time</h3>
-                    <input type="datetime" id="end-time-edit" />
+                    <input type="datetime-local" id="end-time-edit" />
                 </div>
                 <div class="checkbox-group">
                     <label class="checkbox">
@@ -76,13 +76,13 @@
                     </label>
                 </div>
                 <input type="submit" value="Save" />
-                <a href="#" class="button" onclick="hideEdit()">Hide</a>
+                <a href="#" class="button" onclick="hideEdit(); return false;">Hide</a>
             </div>
             <div class="error-container"></div>
         </form>
     </div>
     <div style="margin: 2vw 0">
-        <a href="#" class="button" onclick="showSearch()" id="search-btn">Search</a>
+        <a href="#" class="button" onclick="showSearch(); return false;" id="search-btn">Search</a>
     </div>
     <div id="search" style="display: none;">
         <h4>Search</h4>
@@ -111,8 +111,8 @@
                     </select>
                 </div>
                 <input type="submit" value="Search" />
-                <a href="#" class="button" onclick="get()">Reset</a>
-                <a href="#" class="button" onclick="hideSearch()">Hide</a>
+                <a href="#" class="button" onclick="get(); return false;">Reset</a>
+                <a href="#" class="button" onclick="hideSearch(); return false;">Hide</a>
             </div>
             <div class="error-container"></div>
         </form>
@@ -146,7 +146,7 @@
 
         function getProjects() {
             $.ajax({
-                url: projectUrl,
+                url: projectUrl + "?isCanAdd=true&title=&creator=",
                 method: "get",
                 dataType: "json"
             }).done(function (data) {
@@ -189,7 +189,20 @@
         }
 
         hideTable();
-        get();
+        @if (ViewBag.New)
+        {
+            @Html.Raw("$(document).ready(function (e) {");
+            string line = "$('#status-search').val('Waiting...');";
+            @Html.Raw(line);
+            string get_ = "$('#search-form').submit();";
+            @Html.Raw(get_);
+            @Html.Raw("});");
+        }
+        else
+        {
+            string get_ = "get();";
+            @get_
+        }
         getProjects();
 
         $("#insert-form").submit(function (e) {
@@ -251,7 +264,7 @@
             let creator = $("#creator-search").val();
             let projectId = $("#project-search option:selected").val();
             let status = $("#status-search option:selected").val();
-            
+
             if (title === null) {
                 title = "";
             }
@@ -308,7 +321,7 @@
             }).done(function (data) {
                 console.log(data);
                 if (data.StatusCode === 200) {
-                    get();
+                     $("#search-form").submit();
                     $(".error-container").get(1).innerHTML = "<p class='success'>Changes saved</p>";
                 }
                 else {
@@ -328,7 +341,8 @@
                 dataType: "json"
             }).done(function (data) {
                 if (data.StatusCode === 200) {
-                    get();
+                    hideEdit();
+                    $("#search-form").submit();
                     page(_pagination.currentPage);
                 }
             });
@@ -395,8 +409,8 @@
                 html += "<td>" + obj.StartTime + "</td>";
                 html += "<td>" + obj.EndTime + "</td>";
                 html += "<td>" + obj.Status + "</td>";
-                html += "<td><a href='#' onclick='showEdit(" + obj.Id + ")'>Edit</a></td>";
-                html += "<td><a href='#' onclick='drop(" + obj.Id + ")'>Delete</a></td>";
+                html += "<td><a href='#' onclick='showEdit(" + obj.Id + "); return false;'>Edit</a></td>";
+                html += "<td><a href='#' onclick='drop(" + obj.Id + "); return false;'>Delete</a></td>";
                 html += "</tr>";
             });
 

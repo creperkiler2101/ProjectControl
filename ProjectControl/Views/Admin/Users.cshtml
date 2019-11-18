@@ -2,7 +2,7 @@
 {
     <h2>Users</h2>
     <div style="margin: 2vw 0">
-        <a href="#" class="button" onclick="showSearch()" id="search-btn">Search</a>
+        <a href="#" class="button" onclick="showSearch(); return false;" id="search-btn">Search</a>
     </div>
     <div id="search" style="display: none;">
         <h4>Search</h4>
@@ -41,8 +41,8 @@
                     </select>
                 </div>
                 <input type="submit" value="Search" />
-                <a href="#" class="button" onclick="get()">Reset</a>
-                <a href="#" class="button" onclick="hideSearch()">Hide</a>
+                <a href="#" class="button" onclick="get(); return false;">Reset</a>
+                <a href="#" class="button" onclick="hideSearch(); return false;">Hide</a>
             </div>
             <div class="error-container"></div>
         </form>
@@ -121,10 +121,11 @@
             let activated = $("#activated-search option:selected").val();
 
             $.ajax({
-                url: url + `?login=${login}&email=${email}&name=${name}$sname=${sname}&activated=${activated}&roleId=${role}`,
+                url: url + `search?login=${login}&email=${email}&name=${name}&sname=${sname}&activated=${activated}&roleId=${role}`,
                 method: "get",
                 dataType: "json"
             }).done(function (data) {
+                console.log(data);
                 if (data.ResultCode === 200) {
                     _pagination.array = data.User;
                     _pagination.currentPage = 1;
@@ -146,7 +147,7 @@
                 dataType: "json"
             }).done(function (data) {
                 if (data.ResultCode === 200) {
-                    get();
+                     $("#search-form").submit();
                     display();
                 }
             });
@@ -160,7 +161,7 @@
                 dataType: "json"
             }).done(function (data) {
                 if (data.ResultCode === 200) {
-                    get();
+                     $("#search-form").submit();
                     display();
                 }
             });
@@ -172,9 +173,9 @@
                 method: "delete",
                 dataType: "json"
             }).done(function (data) {
-                console.log(data);
                 if (data.ResultCode === 200) {
-                    get();
+                    hideEdit();
+                     $("#search-form").submit();
                     page(_pagination.currentPage);
                 }
             });
@@ -203,11 +204,11 @@
                 html += "<td>" + obj.Role + "</td>";
                 html += "<td>" + obj.IsActivated + "</td>";
                 if (obj.RoleId == 1)
-                    html += "<td><a href='#' onclick='makeAdmin(" + obj.Id + ")'>Make admin</a></td>";
+                    html += "<td><a href='#' onclick='makeAdmin(" + obj.Id + "); return false;'>Make admin</a></td>";
                 else if (obj.RoleId == 2 && obj.Id != @UserControll.LoggedAs.Id)
-                    html += "<td><a href='#' onclick='makeUser(" + obj.Id + ")'>Make user</a></td>";
+                    html += "<td><a href='#' onclick='makeUser(" + obj.Id + "); return false;'>Make user</a></td>";
                 if (obj.Id != @UserControll.LoggedAs.Id)
-                    html += "<td><a href='#' onclick='drop(" + obj.Id + ")'>Delete</a></td>";
+                    html += "<td><a href='#' onclick='drop(" + obj.Id + "); return false;'>Delete</a></td>";
                 html += "</tr>";
             });
 

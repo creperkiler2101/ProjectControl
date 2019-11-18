@@ -17,11 +17,24 @@ namespace ProjectControl.Models
         public DateTime? StartTime { get; set; }
         public DateTime? EndTime { get; set; }
 
+        public string Status
+        {
+            get
+            {
+                if (DateTime.Now < StartTime)
+                    return "Not started yet";
+                else if (DateTime.Now > StartTime && DateTime.Now < EndTime)
+                    return "In work";
+                else
+                    return "Ended";
+            }
+        }
+
         public bool IsUsersCanAddTask
         {
             get
             {
-                return EndTime > DateTime.Now;
+                return DateTime.Now < EndTime;
             }
         }
     }

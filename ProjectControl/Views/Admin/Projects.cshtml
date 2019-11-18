@@ -2,7 +2,7 @@
 {
     <h2>Projects</h2>
     <div>
-        <a href="#" class="button" onclick="showInsert()" id="insert-btn">Add new</a>
+        <a href="#" class="button" onclick="showInsert(); return false;" id="insert-btn">Add new</a>
     </div>
     <div id="insert" style="display: none;">
         <h4>Add new</h4>
@@ -14,14 +14,14 @@
                 </div>
                 <div class="input-box">
                     <h3>Start time</h3>
-                    <input type="datetime" id="start-time-insert" />
+                    <input type="datetime-local" id="start-time-insert" />
                 </div>
                 <div class="input-box">
                     <h3>End time</h3>
-                    <input type="datetime" id="end-time-insert" />
+                    <input type="datetime-local" id="end-time-insert" />
                 </div>
                 <input type="submit" value="Add" />
-                <a href="#" class="button" onclick="hideInsert()">Hide</a>
+                <a href="#" class="button" onclick="hideInsert(); return false;">Hide</a>
             </div>
             <div class="error-container"></div>
         </form>
@@ -37,20 +37,20 @@
                 </div>
                 <div class="input-box">
                     <h3>Start time</h3>
-                    <input type="datetime" id="start-time" />
+                    <input type="datetime-local" id="start-time" />
                 </div>
                 <div class="input-box">
                     <h3>End time</h3>
-                    <input type="datetime" id="end-time" />
+                    <input type="datetime-local" id="end-time" />
                 </div>
                 <input type="submit" value="Save" />
-                <a href="#" class="button" onclick="hideUpdate()">Hide</a>
+                <a href="#" class="button" onclick="hideUpdate(); return false;">Hide</a>
             </div>
             <div class="error-container"></div>
         </form>
     </div>
     <div style="margin: 2vw 0">
-        <a href="#" class="button" onclick="showSearch()" id="search-btn">Search</a>
+        <a href="#" class="button" onclick="showSearch(); return false;" id="search-btn">Search</a>
     </div>
     <div id="search" style="display: none;">
         <h4>Search</h4>
@@ -66,8 +66,8 @@
                     <input type="text" id="creator-search" />
                 </div>
                 <input type="submit" value="Find" />
-                <a href="#" class="button" onclick="get()">Reset</a>
-                <a href="#" class="button" onclick="hideSearch()">Hide</a>
+                <a href="#" class="button" onclick="get(); return false;">Reset</a>
+                <a href="#" class="button" onclick="hideSearch(); return false;">Hide</a>
             </div>
             <div class="error-container"></div>
         </form>
@@ -145,7 +145,7 @@
             }).done(function (data) {
                 console.log(data);
                 if (data.StatusCode === 200) {
-                    get();
+                     $("#search-form").submit();
                     $(".error-container").get(0).innerHTML = "<p class='success'>Project added</p>";
                 }
                 else {
@@ -189,7 +189,6 @@
                 method: "get",
                 dataType: "json"
             }).done(function (data) {
-                console.log(data);
                 if (data.StatusCode === 200) {
                     _pagination.array = data.Projects;
                     _pagination.currentPage = 1;
@@ -247,7 +246,8 @@
                 dataType: "json"
             }).done(function (data) {
                 if (data.StatusCode === 200) {
-                    get();
+                    hideUpdate();
+                     $("#search-form").submit();
                     page(_pagination.currentPage);
                 }
             });
@@ -309,14 +309,9 @@
                 html += "<td>" + obj.CreatedTime + "</td>";
                 html += "<td>" + obj.StartTime + "</td>";
                 html += "<td>" + obj.EndTime + "</td>";
-                let text = "";
-                if (obj.IsUsersCanAddTask)
-                    text = "In work";
-                else
-                    text = "Ended";
-                html += "<td>" + text + "</td>";
-                html += "<td><a href='#' onclick='showUpdate(" + obj.Id + ")'>Edit</a></td>";
-                html += "<td><a href='#' onclick='drop(" + obj.Id + ")'>Delete</a></td>";
+                html += "<td>" + obj.Status + "</td>";
+                html += "<td><a href='#' onclick='showUpdate(" + obj.Id + "); return false;'>Edit</a></td>";
+                html += "<td><a href='#' onclick='drop(" + obj.Id + "); return false;'>Delete</a></td>";
                 html += "</tr>";
             });
 
