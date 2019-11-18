@@ -57,21 +57,18 @@
             }
             @if (UserControll.LoggedAs != null)
             {
-                <div class="navbar-item" onclick="logOut()">
+                <div class="navbar-item">
                     <a href="../../Tasks/Index">Tasks</a>
                     <div class="list-down">
                         <div class="list-items">
                             <div class="list-item">
                                 <a href="../../Tasks/Add"></a>
                             </div>
-                            <div class="list-item">
-                                <a href="#" id="log_out">Log Out</a>
-                            </div>
                         </div>
                     </div>
                 </div>
                 int id = UserControll.LoggedAs.Id;
-                <div class="navbar-item" onclick="logOut()">
+                <div class="navbar-item">
                     <a href="../../Home/Profile?id=@id">@UserControll.LoggedAs.Login</a>
                     <div class="list-down">
                         <div class="list-items">
@@ -109,8 +106,8 @@
             }).done(function (data) { window.location = "../../Home/Index" });
         });
 
-        /*$(window).scroll(function (e) {
-            let scrollTop = $(window).scrollTop();
+    /*$(window).scroll(function (e) {
+        let scrollTop = window.pageYOffset;
             $(".navbar").css("top", scrollTop + "px");
         });*/
     </script>

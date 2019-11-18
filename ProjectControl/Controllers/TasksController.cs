@@ -70,13 +70,13 @@ namespace ProjectControl.Controllers
                     title = "";
                 if (string.IsNullOrWhiteSpace(creator))
                     creator = "";
-                if (string.IsNullOrWhiteSpace(status))
+                if (string.IsNullOrWhiteSpace(status) || status == "Any")
                     status = "";
 
                 if (projectId == -1)
-                    responce.Tasks.AddRange(db.Tasks.Where(x => x.Name.Contains(title) && x.CreatorLogin.Contains(creator) && x.Status.Contains(status)));
+                    responce.Tasks.AddRange(db.Tasks.ToList().Where(x => x.Name.Contains(title) && x.CreatorLogin.Contains(creator) && x.Status.Contains(status)));
                 else
-                    responce.Tasks.AddRange(db.Tasks.Where(x => x.Name.Contains(title) && x.CreatorLogin.Contains(creator) && x.Status.Contains(status) && x.ProjectId == projectId));
+                    responce.Tasks.AddRange(db.Tasks.ToList().Where(x => x.Name.Contains(title) && x.CreatorLogin.Contains(creator) && x.Status.Contains(status) && x.ProjectId == projectId));
             }
 
             return responce;

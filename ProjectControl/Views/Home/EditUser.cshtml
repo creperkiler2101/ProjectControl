@@ -36,8 +36,8 @@ else
             }).done(function (data) {
                 $("#profile-container").css("display", "block");
                 if (data.ResultCode === 200) {
-                    $("#name").val(data.User.Name);
-                    $("#sname").val(data.User.SecondName);
+                    $("#name").val(data.User[0].Name);
+                    $("#sname").val(data.User[0].SecondName);
                 }
                 else {
                     $("#profile_header").html("User not found");

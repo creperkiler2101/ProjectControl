@@ -81,14 +81,12 @@
             <div class="error-container"></div>
         </form>
     </div>
-    <!--
     <div style="margin: 2vw 0">
         <a href="#" class="button" onclick="showSearch()" id="search-btn">Search</a>
     </div>
     <div id="search" style="display: none;">
         <h4>Search</h4>
         <form id="search-form">
-            <input type="hidden" id="id" />
             <div class="input-container">
                 <div class="input-box">
                     <h3>Title</h3>
@@ -98,14 +96,27 @@
                     <h3>Creator</h3>
                     <input type="text" id="creator-search" />
                 </div>
-                <input type="submit" value="Find" />
+                <div class="input-box">
+                    <h3>Project</h3>
+                    <select id="project-search"></select>
+                </div>
+                <div class="input-box">
+                    <h3>Status</h3>
+                    <select id="status-search">
+                        <option selected>Any</option>
+                        <option>Waiting...</option>
+                        <option>Accepted</option>
+                        <option>In work</option>
+                        <option>Completed</option>
+                    </select>
+                </div>
+                <input type="submit" value="Search" />
                 <a href="#" class="button" onclick="get()">Reset</a>
                 <a href="#" class="button" onclick="hideSearch()">Hide</a>
             </div>
             <div class="error-container"></div>
         </form>
     </div>
-        -->
     <div id="pagination" class="center"></div>
     <div class="center">
         <h4 id="search-error" style="display:none">Nothing founded</h4>
@@ -147,6 +158,7 @@
 
                     $("#project-insert").html(html);
                     $("#project-edit").html(html);
+                    $("#project-search").html("<option value='-1'>Any</option>" + html);
                 }
                     else { }
                 }).fail(function (data) {
@@ -237,7 +249,9 @@
 
             let title = $("#title-search").val();
             let creator = $("#creator-search").val();
-
+            let projectId = $("#project-search option:selected").val();
+            let status = $("#status-search option:selected").val();
+            
             if (title === null) {
                 title = "";
             }
@@ -247,17 +261,16 @@
             }
 
             $.ajax({
-                url: url + "?title=" + title + "&creator=" + creator,
+                url: url + "?title=" + title + "&creator=" + creator + "&status=" + status + "&projectId=" + projectId,
                 method: "get",
                 dataType: "json"
             }).done(function (data) {
-                console.log(data);
                 if (data.StatusCode === 200) {
-                    _pagination.array = data.Projects;
+                    _pagination.array = data.Tasks;
                     _pagination.currentPage = 1;
                     $("#pagination").html(_pagination.getHtml());
                     display();
-                    if (data.Projects.length === 0)
+                    if (data.Tasks.length === 0)
                         hideTable();
                     else
                         showTable();

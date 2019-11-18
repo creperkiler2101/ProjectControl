@@ -27,12 +27,12 @@
     }).done(function (data) {
         $("#profile-container").css("display", "block");
         if (data.ResultCode === 200) {
-            $("#profile_header").html(data.User.Login + " profile");
-            $("#profile_name").html("Name: " + data.User.Name + " " + data.User.SecondName);
-            $("#profile_email").html("Email: " + data.User.Email);
+            $("#profile_header").html(data.User[0].Login + " profile");
+            $("#profile_name").html("Name: " + data.User[0].Name + " " + data.User[0].SecondName);
+            $("#profile_email").html("Email: " + data.User[0].Email);
 
             let status = "";
-            if (data.User.IsActivated)
+            if (data.User[0].IsActivated)
                 status = "Activated";
             else
                 status = "Not activated";

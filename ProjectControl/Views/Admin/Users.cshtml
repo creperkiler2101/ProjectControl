@@ -1,2 +1,262 @@
-﻿<h2>Users</h2>
+﻿@if (UserControll.LoggedAs != null && UserControll.LoggedAs.IsAdmin)
+{
+    <h2>Users</h2>
+    <div style="margin: 2vw 0">
+        <a href="#" class="button" onclick="showSearch()" id="search-btn">Search</a>
+    </div>
+    <div id="search" style="display: none;">
+        <h4>Search</h4>
+        <form id="search-form">
+            <div class="input-container">
+                <div class="input-box">
+                    <h3>Login</h3>
+                    <input type="text" id="login-search" />
+                </div>
+                <div class="input-box">
+                    <h3>Email</h3>
+                    <input type="text" id="email-search" />
+                </div>
+                <div class="input-box">
+                    <h3>Name</h3>
+                    <input type="text" id="name-search" />
+                </div>
+                <div class="input-box">
+                    <h3>Second Name</h3>
+                    <input type="text" id="sname-search" />
+                </div>
+                <div class="input-box">
+                    <h3>Role</h3>
+                    <select id="role-search">
+                        <option value="-1">Any</option>
+                        <option value="1">User</option>
+                        <option value="2">Admin</option>
+                    </select>
+                </div>
+                <div class="input-box">
+                    <h3>Is activated?</h3>
+                    <select id="activated-search" style="width: 10vw">
+                        <option>Any</option>
+                        <option value="true">True</option>
+                        <option value="false">False</option>
+                    </select>
+                </div>
+                <input type="submit" value="Search" />
+                <a href="#" class="button" onclick="get()">Reset</a>
+                <a href="#" class="button" onclick="hideSearch()">Hide</a>
+            </div>
+            <div class="error-container"></div>
+        </form>
+    </div>
+    <div id="pagination" class="center"></div>
+    <div class="center">
+        <h4 id="search-error" style="display:none">Nothing founded</h4>
+        <table id="projects-table">
+            <thead>
+                <tr>
+                    <th>Login</th>
+                    <th>Email</th>
+                    <th>Name</th>
+                    <th>Second name</th>
+                    <th>Role</th>
+                    <th>Is activated?</th>
+                </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+        </table>
+    </div>
+    <script>
+        @{
+            string domain = Request.Url.Scheme + System.Uri.SchemeDelimiter + Request.Url.Host + (Request.Url.IsDefaultPort ? "" : ":" + Request.Url.Port);
+        }
+        const url = '@domain/api/user';
 
+        let _pagination = new Pagination();
+
+        function get() {
+            $.ajax({
+                url: url,
+                method: "get",
+                dataType: "json"
+            }).done(function (data) {
+                console.log(data);
+                if (data.ResultCode === 200) {
+                    _pagination.array = data.User;
+                    $("#pagination").html(_pagination.getHtml());
+                    display();
+
+                    if (data.User.length === 0)
+                        hideTable();
+                    else
+                        showTable();
+                }
+                else { }
+                }).fail(function (data) {
+                    get();
+                });
+        }
+
+        hideTable();
+        get();
+
+    function hideTable() {
+        $("#search-error").show();
+        $("#projects-table").hide();
+        $("#pagination").hide();
+    }
+
+    function showTable() {
+        $("#search-error").hide();
+        $("#projects-table").show();
+        $("#pagination").show();
+    }
+
+        $("#search-form").submit(function (e) {
+            e.preventDefault();
+
+            let login = $("#login-search").val();
+            let email = $("#email-search").val();
+            let name = $("#name-search").val();
+            let sname = $("#sname-search").val();
+            let role = $("#role-search option:selected").val();
+            let activated = $("#activated-search option:selected").val();
+
+            $.ajax({
+                url: url + `?login=${login}&email=${email}&name=${name}$sname=${sname}&activated=${activated}&roleId=${role}`,
+                method: "get",
+                dataType: "json"
+            }).done(function (data) {
+                if (data.ResultCode === 200) {
+                    _pagination.array = data.User;
+                    _pagination.currentPage = 1;
+                    $("#pagination").html(_pagination.getHtml());
+                    display();
+                    if (data.User.length === 0)
+                        hideTable();
+                    else
+                        showTable();
+                }
+            });
+        });
+
+    function makeAdmin(id) {
+        
+            $.ajax({
+                url: url + "?id=" + id + "&newRoleId=2",
+                method: "put",
+                dataType: "json"
+            }).done(function (data) {
+                if (data.ResultCode === 200) {
+                    get();
+                    display();
+                }
+            });
+    }
+    
+        function makeUser(id) {
+        
+            $.ajax({
+                url: url + "?id=" + id + "&newRoleId=1",
+                method: "put",
+                dataType: "json"
+            }).done(function (data) {
+                if (data.ResultCode === 200) {
+                    get();
+                    display();
+                }
+            });
+    }
+
+        function drop(id) {
+            $.ajax({
+                url: url + "?id=" + id,
+                method: "delete",
+                dataType: "json"
+            }).done(function (data) {
+                console.log(data);
+                if (data.ResultCode === 200) {
+                    get();
+                    page(_pagination.currentPage);
+                }
+            });
+        }
+
+        function showSearch() {
+            $("#search-btn").hide();
+            $("#search").show("fast");
+        }
+
+        function hideSearch() {
+            $("#search-btn").show();
+            $("#search").hide("fast");
+        }
+
+        function display() {
+            let array = _pagination.getElementsByPage();
+            let html = "";
+
+            array.forEach(function (obj) {
+                html += "<tr>";
+                html += "<td>" + obj.Login + "</td>";
+                html += "<td>" + obj.Email + "</td>";
+                html += "<td>" + obj.Name + "</td>";
+                html += "<td>" + obj.SecondName + "</td>";
+                html += "<td>" + obj.Role + "</td>";
+                html += "<td>" + obj.IsActivated + "</td>";
+                if (obj.RoleId == 1)
+                    html += "<td><a href='#' onclick='makeAdmin(" + obj.Id + ")'>Make admin</a></td>";
+                else if (obj.RoleId == 2 && obj.Id != @UserControll.LoggedAs.Id)
+                    html += "<td><a href='#' onclick='makeUser(" + obj.Id + ")'>Make user</a></td>";
+                if (obj.Id != @UserControll.LoggedAs.Id)
+                    html += "<td><a href='#' onclick='drop(" + obj.Id + ")'>Delete</a></td>";
+                html += "</tr>";
+            });
+
+            $("#table-body").html(html);
+        }
+
+        function page(page_index) {
+            let pageCount = Math.ceil(_pagination.array.length / _pagination.perPage);
+            if (page_index > pageCount)
+                page_index = pageCount;
+            else if (page_index < 1)
+                page_index = 1;
+
+            _pagination.currentPage = page_index;
+
+            $("#pagination").html(_pagination.getHtml());
+            display();
+        }
+
+        function first() {
+            _pagination.currentPage = 1;
+            $("#pagination").html(_pagination.getHtml());
+            display();
+        }
+
+        function previus() {
+            _pagination.currentPage = _pagination.currentPage - 1;
+            if (_pagination.currentPage < 1)
+                _pagination.currentPage = 1;
+            $("#pagination").html(_pagination.getHtml());
+            display();
+        }
+
+        function last() {
+            _pagination.currentPage = Math.ceil(_pagination.array.length / _pagination.perPage);
+             $("#pagination").html(_pagination.getHtml());
+            display();
+        }
+
+        function next() {
+            _pagination.currentPage = _pagination.currentPage + 1;
+            if (_pagination.currentPage > Math.ceil(_pagination.array.length / _pagination.perPage))
+                _pagination.currentPage = Math.ceil(_pagination.array.length / _pagination.perPage);
+             $("#pagination").html(_pagination.getHtml());
+            display();
+        }
+    </script>
+}
+else
+{
+    <h2>No access</h2>
+}

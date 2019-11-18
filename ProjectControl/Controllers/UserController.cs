@@ -17,9 +17,38 @@ namespace ProjectControl.Controllers
         private DatabaseContext db = new DatabaseContext();
 
         //Get all users
-        public string Get()
+        public GetUserResponce Get()
         {
-            return "a";
+            GetUserResponce responce = new GetUserResponce();
+            responce.ResultCode = 200;
+
+            if (IsNotAccessable())
+            {
+                responce.ResultCode = 403;
+                responce.ErrorMessage.Add("Not enough access rights");
+            }
+            else
+            {
+                foreach (User user in db.Users)
+                {
+                    GetUser _user = new GetUser();
+                    _user.Email = user.Email;
+                    _user.Id = user.Id;
+                    _user.IsActivated = user.IsActivated;
+                    _user.Login = user.Login;
+                    _user.Name = user.Name;
+                    _user.SecondName = user.SecondName;
+                    _user.RoleId = user.RoleId;
+                    if (user.IsAdmin)
+                        _user.Role = "Admin";
+                    else
+                        _user.Role = "User";
+
+                    responce.User.Add(_user);
+                }
+            }
+
+            return responce;
         }
 
         //Get user with id
@@ -39,10 +68,78 @@ namespace ProjectControl.Controllers
                 user.IsActivated = dbUser.IsActivated;
 
                 responce.ResultCode = 200;
-                responce.User = user;
+                responce.User.Add(user);
             }
             else
                 responce.ResultCode = 404;
+
+            return responce;
+        }
+
+        public GetUserResponce Get(string login, string email, string name, string sname, bool? activated, int roleId = -1)
+        {
+            GetUserResponce responce = new GetUserResponce();
+            responce.ResultCode = 200;
+
+            if (IsNotAccessable())
+            {
+                responce.ResultCode = 403;
+                responce.ErrorMessage.Add("Not enough access rights");
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(login))
+                    login = "";
+                if (string.IsNullOrWhiteSpace(email))
+                    email = "";
+                if (string.IsNullOrWhiteSpace(name))
+                    name = "";
+                if (string.IsNullOrWhiteSpace(sname))
+                    sname = "";
+
+                List<User> users = new List<User>();
+                if (roleId == -1 && activated == null)
+                {
+                    users = db.Users.Where(x => x.Login.Contains(login) && x.Email.Contains(email)
+                                            && x.Name.Contains(name) && x.SecondName.Contains(sname)).ToList();
+                }
+                else if (roleId == -1 && activated != null)
+                {
+                    users = db.Users.Where(x => x.Login.Contains(login) && x.Email.Contains(email)
+                                            && x.Name.Contains(name) && x.SecondName.Contains(sname)
+                                            && x.IsActivated == activated).ToList();
+                }
+                else if (roleId != -1 && activated == null)
+                {
+                    users = db.Users.Where(x => x.Login.Contains(login) && x.Email.Contains(email)
+                                            && x.Name.Contains(name) && x.SecondName.Contains(sname)
+                                            && x.RoleId == roleId).ToList();
+                }
+                else if (roleId != -1 && activated != null)
+                {
+                    users = db.Users.Where(x => x.Login.Contains(login) && x.Email.Contains(email) 
+                                            && x.Name.Contains(name) && x.SecondName.Contains(sname)
+                                            && x.IsActivated == activated && x.RoleId == roleId).ToList();
+                }
+
+                foreach (User user in users)
+                {
+                    GetUser _user = new GetUser();
+                    _user.Email = user.Email;
+                    _user.Id = user.Id;
+                    _user.IsActivated = user.IsActivated;
+                    _user.Login = user.Login;
+                    _user.Name = user.Name;
+                    _user.SecondName = user.SecondName;
+                    _user.RoleId = user.RoleId;
+                    if (user.IsAdmin)
+                        _user.Role = "Admin";
+                    else
+                        _user.Role = "User";
+
+                    responce.User.Add(_user);
+                }
+            }
 
             return responce;
         }
@@ -72,44 +169,78 @@ namespace ProjectControl.Controllers
 
         public UpdateUserResponce Put(int id, UpdateUser updUser)
         {
-            UpdateUserResponce respone = new UpdateUserResponce();
+            UpdateUserResponce responce = new UpdateUserResponce();
             User user = db.Users.Where(x => x.Id == id).FirstOrDefault();
-            respone.ResultCode = 200;
-            if (user != null)
+            User loggedAs = UserControll.LoggedAs;
+            responce.ResultCode = 200;
+
+            if (loggedAs == null || (loggedAs.Login != user.Login && !loggedAs.IsAdmin))
             {
-                if (updUser.Name.Trim().Length == 0)
+                responce.ResultCode = 403;
+                responce.ErrorMessage.Add("Not enought access rights");
+            }
+            else {
+                if (user != null)
                 {
-                    respone.ResultCode = 400;
-                    respone.ErrorMessage.Add($"Name is required");
-                }
-                else if (updUser.Name.Length < 1 || user.Name.Length > 30)
-                {
-                    respone.ResultCode = 400;
-                    respone.ErrorMessage.Add($"Name length need to be between 1 and 30");
-                }
+                    if (updUser.Name.Trim().Length == 0)
+                    {
+                        responce.ResultCode = 400;
+                        responce.ErrorMessage.Add($"Name is required");
+                    }
+                    else if (updUser.Name.Length < 1 || user.Name.Length > 30)
+                    {
+                        responce.ResultCode = 400;
+                        responce.ErrorMessage.Add($"Name length need to be between 1 and 30");
+                    }
 
-                if (updUser.SecondName.Trim().Length == 0)
-                {
-                    respone.ResultCode = 400;
-                    respone.ErrorMessage.Add($"Second name is required");
-                }
-                else if (updUser.SecondName.Length < 1 || updUser.SecondName.Length > 30)
-                {
-                    respone.ResultCode = 400;
-                    respone.ErrorMessage.Add($"Second name length need to be between 1 and 30");
-                }
+                    if (updUser.SecondName.Trim().Length == 0)
+                    {
+                        responce.ResultCode = 400;
+                        responce.ErrorMessage.Add($"Second name is required");
+                    }
+                    else if (updUser.SecondName.Length < 1 || updUser.SecondName.Length > 30)
+                    {
+                        responce.ResultCode = 400;
+                        responce.ErrorMessage.Add($"Second name length need to be between 1 and 30");
+                    }
 
-                if (respone.ResultCode == 200)
-                {
-                    user.Name = updUser.Name;
-                    user.SecondName = updUser.SecondName;
-                    db.SaveChanges();
+                    if (responce.ResultCode == 200)
+                    {
+                        user.Name = updUser.Name;
+                        user.SecondName = updUser.SecondName;
+                        db.SaveChanges();
+                    }
                 }
+                else
+                    responce.ResultCode = 404;
+            }
+            
+            return responce;
+        }
+
+        public UpdateUserResponce Put(int id, int newRoleId)
+        {
+            UpdateUserResponce responce = new UpdateUserResponce();
+            responce.ResultCode = 200;
+
+            if (IsNotAccessable())
+            {
+                responce.ResultCode = 403;
+                responce.ErrorMessage.Add("Not enought access rights");
             }
             else
-                respone.ResultCode = 404;
+            {
+                User user = db.Users.Where(x => x.Id == id).FirstOrDefault();
+                if (user != null)
+                {
+                    user.RoleId = newRoleId;
+                    db.SaveChanges();
+                }
+                else
+                    responce.ResultCode = 404;
+            }
 
-            return respone;
+            return responce;
         }
 
         //Register new user
@@ -215,10 +346,33 @@ namespace ProjectControl.Controllers
             return result;
         }
 
-        //Delete existing user with id
-        public string Delete(int id)
+        private bool IsNotAccessable()
         {
-            return "abc";
+            return UserControll.LoggedAs == null || !UserControll.LoggedAs.IsAdmin;
+        }
+
+        //Delete existing user with id
+        public GetUserResponce Delete(int id)
+        {
+            GetUserResponce responce = new GetUserResponce();
+            responce.ResultCode = 200;
+
+            if (IsNotAccessable()) {
+                responce.ResultCode = 403;
+                responce.ErrorMessage.Add("Not enought access rights");
+            }
+            else
+            {
+                User dbUser = db.Users.Where(x => x.Id == id).FirstOrDefault();
+
+                if (dbUser != null)
+                {
+                    db.Users.Remove(dbUser);
+                    db.SaveChanges();
+                }
+            }
+
+            return responce;
         }
     }
 }
