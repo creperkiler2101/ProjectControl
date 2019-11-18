@@ -1,0 +1,121 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>@ViewBag.Title</title>
+    @Styles.Render("~/Content/Site.css")
+    @Scripts.Render("~/bundles/modernizr")
+    @Scripts.Render("~/Scripts/jquery-3.3.1.min.js")
+    @Scripts.Render("~/Scripts/Pagination.js")
+</head>
+<body>
+    <div class="header">
+        <div class="header-mask"></div>
+        <div class="logo">
+            <a href="../../Home/Index">
+                <img src="../../Content/Images/Main/logo.jpg" alt="Logo" />
+            </a>
+        </div>
+    </div>
+    <div class="navbar">
+        <div class="navbar-items">
+            @if (UserControll.LoggedAs != null && UserControll.LoggedAs.IsAdmin)
+            {
+                <div class="navbar-item">
+                    <a href="../../Admin/Index">Admin Panel</a>
+                    <div class="list-down">
+                        <div class="list-items">
+                            <div class="list-item">
+                                <a href="../../Admin/Projects">Projects</a>
+                            </div>
+                            <div class="list-item">
+                                <a href="../../Admin/Tasks">Tasks</a>
+                            </div>
+                            <div class="list-item">
+                                <a href="../../Admin/Users">Users</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="navbar-item">
+                    <a href="../../Project/Index">Projects</a>
+                </div>
+            }
+            @if (UserControll.LoggedAs == null)
+            {
+                <div class="navbar-item">
+                    <a href="../../Home/Login">Log In</a>
+                    <div class="list-down">
+                        <div class="list-items">
+                            <div class="list-item">
+                                <a href="../../Home/Register">Register</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            @if (UserControll.LoggedAs != null)
+            {
+                <div class="navbar-item" onclick="logOut()">
+                    <a href="../../Tasks/Index">Tasks</a>
+                    <div class="list-down">
+                        <div class="list-items">
+                            <div class="list-item">
+                                <a href="../../Tasks/Add"></a>
+                            </div>
+                            <div class="list-item">
+                                <a href="#" id="log_out">Log Out</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                int id = UserControll.LoggedAs.Id;
+                <div class="navbar-item" onclick="logOut()">
+                    <a href="../../Home/Profile?id=@id">@UserControll.LoggedAs.Login</a>
+                    <div class="list-down">
+                        <div class="list-items">
+                            <div class="list-item">
+                                <a href="../../Home/EditUser?id=@id">Edit</a>
+                            </div>
+                            <div class="list-item">
+                                <a href="#" id="log_out">Log Out</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="container">
+        @RenderBody()
+    </div>
+
+    <script>
+        $(".navbar-item").mousemove(function (e) {
+            if ($(this).children(".list-down").is(":hidden"))
+                $(this).children(".list-down").show("fast");
+        });
+
+        $(".navbar-item").mouseleave(function (e) {
+            if ($(this).children(".list-down").is(":visible"))
+                $(this).children(".list-down").hide("fast");
+        });
+
+        $("#log_out").click(function (e) {
+            $.ajax({
+                method: "DELETE",
+                url: "../../api/logsession"
+            }).done(function (data) { window.location = "../../Home/Index" });
+        });
+
+        /*$(window).scroll(function (e) {
+            let scrollTop = $(window).scrollTop();
+            $(".navbar").css("top", scrollTop + "px");
+        });*/
+    </script>
+
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
+</body>
+</html>

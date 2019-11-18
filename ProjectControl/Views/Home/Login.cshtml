@@ -1,0 +1,69 @@
+﻿
+@{
+    ViewBag.Title = "Login";
+}
+
+<h2>Log In</h2>
+
+<form id="login_form">
+    <div class="input-container">
+        <div class="input-box">
+            <h3>Login</h3>
+            <input type="text" id="login" />
+        </div>
+        <div class="input-box">
+            <h3>Password</h3>
+            <input type="password" id="password" />
+        </div>
+        <div class="checkbox-group">
+            <label class="checkbox">
+                <input type="checkbox" id="rem_me" />
+                <span class="checkbox-mark"></span>
+                <span class="checkbox-text">Remember me</span>
+            </label>
+        </div>
+        <input type="submit" value="Log In" />
+        <a href="../../Home/Register" class="button">Register</a>
+    </div>
+    <div class="error-container">
+
+    </div>
+</form>
+
+<script>
+    @{
+        string domain = Request.Url.Scheme + System.Uri.SchemeDelimiter + Request.Url.Host + (Request.Url.IsDefaultPort ? "" : ":" + Request.Url.Port);
+    }
+
+    const url = '@domain/api/logsession';
+
+    $("#login_form").submit(function (e) {
+        e.preventDefault();
+
+        let login = $("#login").val();
+        let password = $("#password").val();
+        let remember_me = $("#rem_me").is(":checked");
+
+        let data = {
+            "Login": login,
+            "Password": password,
+            "RememberMe": remember_me
+        }
+
+        $.ajax({
+            url: url,
+            data: JSON.stringify(data),
+            contentType: "application/json",
+            method: "post",
+            dataType: "json"
+        }).done(function (data) {
+            console.log(data);
+            if (data.ResultCode === 200) {
+                window.location = "../../Home/Index";
+            }
+            else {
+                $(".error-container").get(0).innerHTML = "<p>" + data.ErrorMessage + "</p>";
+            }
+        });
+    });
+</script>

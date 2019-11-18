@@ -1,0 +1,23 @@
+﻿<h2>Activate Account</h2>
+<p id="result"></p>
+
+<script>
+    @{
+        string domain = Request.Url.Scheme + System.Uri.SchemeDelimiter + Request.Url.Host + (Request.Url.IsDefaultPort ? "" : ":" + Request.Url.Port);
+    }
+    const url = "@domain/api/user";
+
+    const data = {
+        "Url": "@ViewBag.url"
+    };
+
+    $.ajax({
+        url: url,
+        data: JSON.stringify(data),
+        contentType: "application/json",
+        method: "put",
+        dataType: "json"
+    }).done(function (data) {
+        $("#result").html(data.ErrorMessage);
+    });
+</script>

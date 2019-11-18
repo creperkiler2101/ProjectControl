@@ -1,0 +1,100 @@
+﻿
+@{
+    ViewBag.Title = "Login";
+}
+
+<h2>Registration</h2>
+
+<div style="display: inline;">
+    <div style="display: inline-block;" id="regform">
+        <form id="register_form">
+            <div class="input-container">
+                <div class="input-box">
+                    <h3>Login</h3>
+                    <input type="text" id="login" />
+                </div>
+                <div class="input-box">
+                    <h3>Email</h3>
+                    <input type="text" id="email" />
+                </div>
+                <div class="input-box">
+                    <h3>Password</h3>
+                    <input type="password" id="password" />
+                </div>
+                <div class="input-box">
+                    <h3>Re-Password</h3>
+                    <input type="password" id="repassword" />
+                </div>
+                <div class="input-box">
+                    <h3>Name</h3>
+                    <input type="text" id="name" />
+                </div>
+                <div class="input-box">
+                    <h3>Second name</h3>
+                    <input type="text" id="sname" />
+                </div>
+                <input type="submit" value="Register" />
+                <a href="../../Home/Login" class="button">Log In</a>
+            </div>
+            <div class="error-container">
+
+            </div>
+        </form>
+    </div>
+    <div style="display: none;" id="success">
+        <p>Registration successful</p>
+        <p>We are send activation email to <span id="emailspan"></span>. Go and activate your account</p>
+    </div>
+</div>
+
+<script>
+    @{
+        string domain = Request.Url.Scheme + System.Uri.SchemeDelimiter + Request.Url.Host + (Request.Url.IsDefaultPort ? "" : ":" + Request.Url.Port);
+    }
+
+    const url = '@domain/api/user';
+
+    $("#register_form").submit(function (e) {
+        e.preventDefault();
+
+        let login = $("#login").val();
+        let password = $("#password").val();
+        let repassword = $("#repassword").val();
+        let email = $("#email").val();
+        let name = $("#name").val();
+        let sname = $("#sname").val();
+
+        let data = {
+            "Login": login,
+            "Password": password,
+            "RepeatPassword": repassword,
+            "Email": email,
+            "Name": name,
+            "SecondName": sname
+        }
+
+        $.ajax({
+            url: url,
+            data: JSON.stringify(data),
+            contentType: "application/json",
+            method: "post",
+            dataType: "json"
+        }).done(function (data) {
+            if (data.ResultCode === 201) {
+                //window.location = "../../Home/Index"
+                $("#regform").slideUp("fast");
+                $("#emailspan").html(email);
+                $("#success").slideDown("fast");
+            }
+            else {
+                let error = "";
+
+                data.ErrorMessage.forEach(function (d) {
+                    error += "<p>" + d + "</p>";
+                });
+
+                $(".error-container").get(0).innerHTML = error;
+            }
+        });
+    });
+</script>

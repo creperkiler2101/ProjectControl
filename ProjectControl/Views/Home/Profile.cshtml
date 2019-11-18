@@ -1,0 +1,47 @@
+﻿<div style="display:none" id="profile-container">
+    <h2 id="profile_header">profile</h2>
+    <div>
+        <h4 id="profile_name">Name: </h4>
+        <h4 id="profile_email">Email: </h4>
+        <h4 id="profile_activated">Activation status: </h4>
+    </div>
+    @if (UserControll.LoggedAs != null)
+    {
+        if (UserControll.LoggedAs.Id == ViewBag.id)
+        {
+            <a href="../../Home/EditUser?id=@ViewBag.id" class="button">Edit</a>
+        }
+    }
+</div>
+
+<script>
+    @{
+        string domain = Request.Url.Scheme + System.Uri.SchemeDelimiter + Request.Url.Host + (Request.Url.IsDefaultPort ? "" : ":" + Request.Url.Port);
+    }
+
+    const url = '@domain/api/user?id=@ViewBag.id';
+
+    $.ajax({
+        url: url,
+        method: "get",
+    }).done(function (data) {
+        $("#profile-container").css("display", "block");
+        if (data.ResultCode === 200) {
+            $("#profile_header").html(data.User.Login + " profile");
+            $("#profile_name").html("Name: " + data.User.Name + " " + data.User.SecondName);
+            $("#profile_email").html("Email: " + data.User.Email);
+
+            let status = "";
+            if (data.User.IsActivated)
+                status = "Activated";
+            else
+                status = "Not activated";
+
+            $("#profile_activated").html(status);
+        }
+        else {
+            $("#profile_header").html("User not found");
+        }
+    });
+</script>
+

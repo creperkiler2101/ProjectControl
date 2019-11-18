@@ -1,0 +1,81 @@
+﻿@if (UserControll.LoggedAs == null || (UserControll.LoggedAs != null && UserControll.LoggedAs.Id != ViewBag.id) && !(UserControll.LoggedAs != null && UserControll.LoggedAs.IsAdmin))
+{
+    <h2>No access</h2>
+}
+else
+{  
+<div id="profile-container" style="display:none;">
+    <h2 id="profile_header">Edit</h2>
+    <form id="edit_form">
+        <div class="input-container">
+            <div class="input-box">
+                <h3>Name</h3>
+                <input type="text" id="name" />
+            </div>
+            <div class="input-box">
+                <h3>Second Name</h3>
+                <input type="text" id="sname" />
+            </div>
+            <input type="submit" value="Save" />
+            <a href="../../Home/Profile?id=@ViewBag.id" class="button">Back</a>
+        </div>
+        <div class="error-container">
+
+        </div>
+    </form>
+</div>
+    <script>
+        @{
+            string domain = Request.Url.Scheme + System.Uri.SchemeDelimiter + Request.Url.Host + (Request.Url.IsDefaultPort ? "" : ":" + Request.Url.Port);
+        }
+        const url = '@domain/api/user?id=@ViewBag.id';
+        $(document).ready(function (e) {
+            $.ajax({
+                url: url,
+                method: "get",
+            }).done(function (data) {
+                $("#profile-container").css("display", "block");
+                if (data.ResultCode === 200) {
+                    $("#name").val(data.User.Name);
+                    $("#sname").val(data.User.SecondName);
+                }
+                else {
+                    $("#profile_header").html("User not found");
+                    $("#edit_form").css("display", "block");
+                }
+            });
+        });
+
+        $("#edit_form").submit(function (e) {
+            e.preventDefault();
+
+            let name = $("#name").val();
+            let sname = $("#sname").val();
+
+            let data = {
+                "Name": name,
+                "SecondName": sname,
+            }
+
+            $.ajax({
+                url: url,
+                data: JSON.stringify(data),
+                contentType: "application/json",
+                method: "put",
+                dataType: "json"
+            }).done(function (data) {
+                if (data.ResultCode === 200) {
+                    $(".error-container").get(0).innerHTML = "<p class='success'>Changes saved</p>"
+                }
+                else {
+                    let msg = "";
+                    data.ErrorMessage.forEach(function (item) {
+                        msg += "<p>" + item + "</p>";
+                    });
+
+                    $(".error-container").get(0).innerHTML = msg;
+                }
+            });
+        });
+    </script>
+}
