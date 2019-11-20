@@ -1,0 +1,244 @@
+﻿@if (UserControll.LoggedAs != null && UserControll.LoggedAs.IsAdmin)
+{
+    <h2>New tasks</h2>
+    <h4 style="display: none;" id="last-action"></h4>
+    <div id="view-more" style="display: none;">
+        <input type="hidden" value="-1" id="id" />
+        <input type="hidden" value="-1" id="start-time" />
+        <input type="hidden" value="-1" id="end-time" />
+        <input type="hidden" value="-1" id="title" />
+        <input type="hidden" value="-1" id="description" />
+        <input type="hidden" value="-1" id="project" />
+        <h2 id="header-elem"></h2>
+        <h4>Project: <span id="project-elem"></span></h4>
+        <h4>Start time: <span id="start-elem"></span></h4>
+        <h4>End time: <span id="end-elem"></span></h4>
+        <div id="description-elem" style="margin-bottom: 2vw; font-size: 1.5vw; border: 0.5vw solid #A49BFF; padding: 1vw; border-radius: 1vw;"></div>
+        <a class="button" href="#" onclick="accept(); return false;">Accept</a>
+        <a class="button" href="#" onclick="decline(); return false;">Decline</a>
+        <a class="button" href="#" onclick="hide(); return false;">Hide</a>
+    </div>
+    <div id="pagination" class="center"></div>
+    <div class="center">
+        <h4 id="search-error" style="display:none">Nothing founded</h4>
+        <table id="projects-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Project</th>
+                    <th>Creator</th>
+                    <th>Created time</th>
+                    <th>Start time</th>
+                    <th>End time</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+        </table>
+    </div>
+    <script>
+        @{
+            string domain = Request.Url.Scheme + System.Uri.SchemeDelimiter + Request.Url.Host + (Request.Url.IsDefaultPort ? "" : ":" + Request.Url.Port);
+        }
+        const url = '@domain/api/tasks';
+        let _pagination = new Pagination();
+
+        function hide(showLast) {
+            if (showLast)
+                $("#last-action").show("fast");
+            $("#view-more").hide("fast");
+        }
+
+        function show(id) {
+            $.ajax({
+                url: url + "?id=" + id,
+                method: "get",
+                dataType: "json"
+            }).done(function (data) {
+                if (data.StatusCode === 200) {
+                    let obj = data.Tasks[0];
+
+                    $("#id").val(id);
+                    $("#title").val(obj.Name);
+                    $("#project").val(obj.ProjectId);
+                    $("#description").val(obj.Description);
+                    $("#start-time").val(obj.StartTime);
+                    $("#end-time").val(obj.EndTime);
+
+                    $("#header-elem").html(obj.Name);
+                    $("#description-elem").html(obj.Description);
+                    $("#start-elem").html(obj.StartTimeString);
+                    $("#end-elem").html(obj.EndTimeString);
+                    $("#project-elem").html(obj.ProjectName);
+
+                    $("#last-action").hide("fast");
+                    $("#view-more").show("fast");
+                }
+            });
+        }
+
+        function hideTable() {
+            $("#search-error").show();
+            $("#projects-table").hide();
+            $("#pagination").hide();
+        }
+
+        function showTable() {
+            $("#search-error").hide();
+            $("#projects-table").show();
+            $("#pagination").show();
+        }
+
+        function accept() {
+            let id = $("#id").val();
+            let start = $("#start-time").val();
+            let end = $("#end-time").val();
+            let title = $("#title").val();
+            let description = $("#description").val();
+            let project = $("#project").val();
+
+            let data = {
+                "Id": id,
+                "Name": title,
+                "Description": description,
+                "StartTime": start,
+                "EndTime": end,
+                "ProjectId": project,
+                "IsAccepted": true
+            }
+
+            $.ajax({
+                url: url,
+                data: JSON.stringify(data),
+                contentType: "application/json",
+                method: "put",
+                dataType: "json"
+            }).done(function (data) {
+                if (data.StatusCode === 200) {
+                    $("#last-action").html("Accepted!");
+                    hide(true);
+                    get();
+                }
+            });
+        }
+
+        function decline() {
+            let id = $("#id").val();
+            let start = $("#start-time").val();
+            let end = $("#end-time").val();
+            let title = $("#title").val();
+            let description = $("#description").val();
+            let project = $("#project").val();
+
+            let data = {
+                "Id": id,
+                "Name": title,
+                "Description": description,
+                "StartTime": start,
+                "EndTime": end,
+                "ProjectId": project,
+                "IsAccepted": false
+            }
+
+            $.ajax({
+                url: url,
+                data: JSON.stringify(data),
+                contentType: "application/json",
+                method: "put",
+                dataType: "json"
+            }).done(function (data) {
+                if (data.StatusCode === 200) {
+                    $("#last-action").html("Declined!");
+                    hide(true);
+                    get();
+                }
+            });
+        }
+
+        function get() {
+            $.ajax({
+                url: url + "?title=&creator=&status=Waiting...",
+                method: "get",
+                dataType: "json"
+            }).done(function (data) {
+                if (data.StatusCode === 200) {
+                    _pagination.array = data.Tasks;
+                    _pagination.currentPage = 1;
+                    $("#pagination").html(_pagination.getHtml());
+                    display();
+                    if (data.Tasks.length === 0)
+                        hideTable();
+                    else
+                        showTable();
+                }
+            });
+        }
+
+        get();
+
+        function display() {
+            let array = _pagination.getElementsByPage();
+            let html = "";
+
+            array.forEach(function (obj) {
+                html += "<tr>";
+                html += "<td>" + obj.Name + "</td>";
+                html += "<td>" + obj.ProjectName + "</td>";
+                html += "<td>" + obj.CreatorLogin + "</td>";
+                html += "<td>" + obj.CreatedTimeString + "</td>";
+                html += "<td>" + obj.StartTimeString + "</td>";
+                html += "<td>" + obj.EndTimeString + "</td>";
+                html += "<td>" + obj.Status + "</td>";
+                html += "<td><a href='#' onclick='show(" + obj.Id + "); return false;'>View more</a></td>";
+                html += "</tr>";
+            });
+
+            $("#table-body").html(html);
+        }
+
+        function page(page_index) {
+            let pageCount = Math.ceil(_pagination.array.length / _pagination.perPage);
+            if (page_index > pageCount)
+                page_index = pageCount;
+            else if (page_index < 1)
+                page_index = 1;
+
+            _pagination.currentPage = page_index;
+
+            $("#pagination").html(_pagination.getHtml());
+            display();
+        }
+
+        function first() {
+            _pagination.currentPage = 1;
+            $("#pagination").html(_pagination.getHtml());
+            display();
+        }
+
+        function previus() {
+            _pagination.currentPage = _pagination.currentPage - 1;
+            if (_pagination.currentPage < 1)
+                _pagination.currentPage = 1;
+            $("#pagination").html(_pagination.getHtml());
+            display();
+        }
+
+        function last() {
+            _pagination.currentPage = Math.ceil(_pagination.array.length / _pagination.perPage);
+            $("#pagination").html(_pagination.getHtml());
+            display();
+        }
+
+        function next() {
+            _pagination.currentPage = _pagination.currentPage + 1;
+            if (_pagination.currentPage > Math.ceil(_pagination.array.length / _pagination.perPage))
+                _pagination.currentPage = Math.ceil(_pagination.array.length / _pagination.perPage);
+            $("#pagination").html(_pagination.getHtml());
+            display();
+        }
+    </script>
+}
+else
+{
+    <h2>No access</h2>
+}

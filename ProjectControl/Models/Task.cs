@@ -17,15 +17,33 @@ namespace ProjectControl.Models
         public string CreatorLogin { get; set; }
         public string Description { get; set; }
 
-        public bool IsAccepted { get; set; }
+        public bool? IsAccepted { get; set; }
 
         public DateTime? CreatedTime { get; set; }
         public DateTime? StartTime { get; set; }
         public DateTime? EndTime { get; set; }
 
+        public string StartTimeString {
+            get {
+                return StartTime?.ToString("yyyy-MM-dd hh:mm");
+            }
+        }
+
+        public string EndTimeString {
+            get {
+                return EndTime?.ToString("yyyy-MM-dd hh:mm");
+            }
+        }
+
+        public string CreatedTimeString {
+            get {
+                return CreatedTime?.ToString("yyyy-MM-dd hh:mm");
+            }
+        }
+
         public string Status {
             get {
-                if (IsAccepted)
+                if (IsAccepted == true)
                 {
                     if (DateTime.Now < EndTime && DateTime.Now > StartTime)
                         return "In work";
@@ -34,6 +52,8 @@ namespace ProjectControl.Models
                     else
                         return "Accepted";
                 }
+                else if (IsAccepted == false)
+                    return "Declined";
                 else
                     return "Waiting...";
             }

@@ -12,7 +12,7 @@ namespace ProjectControl.Controllers
         public ActionResult Index()
         {
             DatabaseContext db = new DatabaseContext();
-            ViewBag.waiting = db.Tasks.Where(x => !x.IsAccepted).ToList().Count;
+            ViewBag.waiting = db.Tasks.Where(x => x.IsAccepted == null).ToList().Count;
             return View();
         }
 
@@ -28,6 +28,11 @@ namespace ProjectControl.Controllers
         }
 
         public ActionResult Users()
+        {
+            return View();
+        }
+
+        public ActionResult NewTasks()
         {
             return View();
         }

@@ -17,6 +17,24 @@ namespace ProjectControl.Models
         public DateTime? StartTime { get; set; }
         public DateTime? EndTime { get; set; }
 
+        public string StartTimeString {
+            get {
+                return StartTime?.ToString("yyyy-MM-dd hh:mm");
+            }
+        }
+
+        public string EndTimeString {
+            get {
+                return EndTime?.ToString("yyyy-MM-dd hh:mm");
+            }
+        }
+
+        public string CreatedTimeString {
+            get {
+                return CreatedTime?.ToString("yyyy-MM-dd hh:mm");
+            }
+        }
+
         public string Status
         {
             get

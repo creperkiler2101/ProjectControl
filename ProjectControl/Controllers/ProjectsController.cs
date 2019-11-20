@@ -24,7 +24,7 @@ namespace ProjectControl.Controllers
             ProjectResponce responce = new ProjectResponce();
             responce.StatusCode = 200;
 
-            if (IsNotAccessable())
+            if (UserControll.LoggedAs == null)
             {
                 responce.StatusCode = 403;
                 responce.ErrorMessage.Add("No access rights");
@@ -42,7 +42,7 @@ namespace ProjectControl.Controllers
             ProjectResponce responce = new ProjectResponce();
             responce.StatusCode = 200;
 
-            if (IsNotAccessable())
+            if (UserControll.LoggedAs == null)
             {
                 responce.StatusCode = 403;
                 responce.ErrorMessage.Add("No access rights");
@@ -58,9 +58,10 @@ namespace ProjectControl.Controllers
         public ProjectResponce Get(string title, string creator, bool? isCanAdd)
         {
             ProjectResponce responce = new ProjectResponce();
+            User user = UserControll.LoggedAs;
             responce.StatusCode = 200;
 
-            if (IsNotAccessable())
+            if (user == null)
             {
                 responce.StatusCode = 403;
                 responce.ErrorMessage.Add("No access rights");
@@ -84,6 +85,7 @@ namespace ProjectControl.Controllers
         public ProjectResponce Post(Project _project)
         {
             ProjectResponce responce = new ProjectResponce();
+            User user = UserControll.LoggedAs;
             responce.StatusCode = 200;
 
             if (IsNotAccessable())

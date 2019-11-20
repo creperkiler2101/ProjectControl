@@ -49,6 +49,7 @@
                 method: "get",
                 dataType: "json"
             }).done(function (data) {
+                console.log(data);
                 if (data.StatusCode === 200) {
                     let html = "";
                     data.Projects.forEach(function (obj) {
@@ -79,7 +80,7 @@
             };
 
             $.ajax({
-                url: url,
+                url: url + "?autoStatus=true",
                 data: JSON.stringify(data),
                 contentType: "application/json",
                 method: "post",

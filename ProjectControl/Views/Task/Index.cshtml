@@ -1,6 +1,341 @@
 ﻿@if (UserControll.LoggedAs != null)
 {
     <h2>My Requests</h2>
+    <div id="edit" style="display: none;">
+        <h4>Edit</h4>
+        <form id="edit-form">
+            <input type="hidden" id="id" />
+            <div class="input-container">
+                <div class="input-box">
+                    <h3>Title</h3>
+                    <input type="text" id="title-edit" />
+                </div>
+                <div class="input-box">
+                    <h3>Description</h3>
+                    <textarea id="description-edit"></textarea>
+                    <p>HTML allowed</p>
+                </div>
+                <div class="input-box">
+                    <h3>Project</h3>
+                    <select id="project-edit"></select>
+                </div>
+                <div class="input-box">
+                    <h3>Start time</h3>
+                    <input type="datetime-local" id="start-time-edit" />
+                </div>
+                <div class="input-box">
+                    <h3>End time</h3>
+                    <input type="datetime-local" id="end-time-edit" />
+                </div>
+                <input type="submit" value="Save" />
+                <a href="#" class="button" onclick="hideEdit(); return false;">Hide</a>
+            </div>
+            <div class="error-container"></div>
+        </form>
+    </div>
+    <div style="margin: 2vw 0">
+        <a href="#" class="button" onclick="showSearch(); return false;" id="search-btn">Search</a>
+    </div>
+    <div id="search" style="display: none;">
+        <h4>Search</h4>
+        <form id="search-form">
+            <div class="input-container">
+                <div class="input-box">
+                    <h3>Title</h3>
+                    <input type="text" id="title-search" />
+                </div>
+                <div class="input-box">
+                    <h3>Project</h3>
+                    <select id="project-search"></select>
+                </div>
+                <div class="input-box">
+                    <h3>Status</h3>
+                    <select id="status-search">
+                        <option selected>Any</option>
+                        <option>Waiting...</option>
+                        <option>Accepted</option>
+                        <option>Declined</option>
+                        <option>In work</option>
+                        <option>Completed</option>
+                    </select>
+                </div>
+                <input type="submit" value="Search" />
+                <a href="#" class="button" onclick="get(); return false;">Reset</a>
+                <a href="#" class="button" onclick="hideSearch(); return false;">Hide</a>
+            </div>
+            <div class="error-container"></div>
+        </form>
+    </div>
+    <div id="pagination" class="center"></div>
+    <div class="center">
+        <h4 id="search-error" style="display:none">Nothing founded</h4>
+        <table id="projects-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Project</th>
+                    <th>Created time</th>
+                    <th>Start time</th>
+                    <th>End time</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+        </table>
+    </div>
+    <script>
+        @{
+            string domain = Request.Url.Scheme + System.Uri.SchemeDelimiter + Request.Url.Host + (Request.Url.IsDefaultPort ? "" : ":" + Request.Url.Port);
+        }
+        const url = '@domain/api/tasks';
+        const projectUrl = '@domain/api/projects';
+
+        let _pagination = new Pagination();
+
+        function getProjects() {
+            $.ajax({
+                url: projectUrl + "?isCanAdd=true&title=&creator=",
+                method: "get",
+                dataType: "json"
+            }).done(function (data) {
+                if (data.StatusCode === 200) {
+                    let html = "";
+                    data.Projects.forEach(function (obj) {
+                        html += "<option value='" + obj.Id + "'>" + obj.Name + "</option>";
+                    });
+
+                    //$("#project-insert").html(html);
+                    $("#project-edit").html(html);
+                    $("#project-search").html("<option value='-1'>Any</option>" + html);
+                }
+                    else { }
+                }).fail(function (data) {
+                    getProjects();
+                });
+        }
+
+        function get() {
+            $.ajax({
+                url: url + "?getAll=false",
+                method: "get",
+                dataType: "json"
+            }).done(function (data) {
+                if (data.StatusCode === 200) {
+                    _pagination.array = data.Tasks;
+                    $("#pagination").html(_pagination.getHtml());
+                    display();
+
+                    if (data.Tasks.length === 0)
+                        hideTable();
+                    else
+                        showTable();
+                }
+                }).fail(function (data) {
+                    get();
+                });
+        }
+
+        hideTable();
+        get();
+        getProjects();
+
+    function hideTable() {
+        $("#search-error").show();
+        $("#projects-table").hide();
+        $("#pagination").hide();
+    }
+
+    function showTable() {
+        $("#search-error").hide();
+        $("#projects-table").show();
+        $("#pagination").show();
+    }
+
+        $("#search-form").submit(function (e) {
+            e.preventDefault();
+
+            let title = $("#title-search").val();
+            let projectId = $("#project-search option:selected").val();
+            let status = $("#status-search option:selected").val();
+
+            if (title === null) {
+                title = "";
+            }
+
+            $.ajax({
+                url: url + "?getAll=false&title=" + title + "&creator=&status=" + status + "&projectId=" + projectId,
+                method: "get",
+                dataType: "json"
+            }).done(function (data) {
+                if (data.StatusCode === 200) {
+                    _pagination.array = data.Tasks;
+                    _pagination.currentPage = 1;
+                    $("#pagination").html(_pagination.getHtml());
+                    display();
+                    if (data.Tasks.length === 0)
+                        hideTable();
+                    else
+                        showTable();
+                }
+            });
+        });
+
+        $("#edit-form").submit(function (e) {
+            e.preventDefault();
+
+            let id = $("#id").val();
+            let title = $("#title-edit").val();
+            let description = $("#description-edit").val();
+            let start = $("#start-time-edit").val();
+            let end = $("#end-time-edit").val();
+            let project = $("#project-edit option:selected").val();
+            let status = $("#status-edit option:selected").val();
+
+            let data = {
+                "Id": id,
+                "Name": title,
+                "Description": description,
+                "ProjectId": project,
+                "StartTime": start,
+                "EndTime": end,
+                "IsAccepted": status,
+            }
+
+            $.ajax({
+                url: url + "?id=" + id,
+                data: JSON.stringify(data),
+                contentType: "application/json",
+                method: "put",
+                dataType: "json"
+            }).done(function (data) {
+                console.log(data);
+                if (data.StatusCode === 200) {
+                     $("#search-form").submit();
+                    $(".error-container").get(0).innerHTML = "<p class='success'>Changes saved</p>";
+                }
+                else {
+                    let html = "";
+                    data.ErrorMessage.forEach(function (error) {
+                        html += "<p>" + error + "</p>";
+                    });
+                    $(".error-container").get(0).innerHTML = html;
+                }
+            });
+        });
+
+        function drop(id) {
+            $.ajax({
+                url: url + "?id=" + id,
+                method: "delete",
+                dataType: "json"
+            }).done(function (data) {
+                if (data.StatusCode === 200) {
+                    hideEdit();
+                    $("#search-form").submit();
+                    page(_pagination.currentPage);
+                }
+            });
+        }
+
+        function showSearch() {
+            $("#search-btn").hide();
+            $("#search").show("fast");
+        }
+
+        function hideSearch() {
+            $("#search-btn").show();
+            $("#search").hide("fast");
+        }
+
+        function showEdit(id) {
+            let obj = null;
+            $.ajax({
+                url: url + "?id=" + id,
+                method: "get",
+                dataType: "json"
+            }).done(function (data) {
+                if (data.StatusCode === 200) {
+                    obj = data.Tasks[0];
+
+                    $("#id").val(id);
+                    $("#title-edit").val(obj.Name);
+                    $("#project-edit").val(obj.ProjectId);
+                    $("#description-edit").val(obj.Description);
+                    $("#start-time-edit").val(obj.StartTime);
+                    $("#end-time-edit").val(obj.EndTime);
+
+                    $("#edit").show("fast");
+                }
+            });
+        }
+
+        function hideEdit() {
+            $("#edit").hide("fast");
+        }
+
+        function display() {
+            let array = _pagination.getElementsByPage();
+            let html = "";
+
+            array.forEach(function (obj) {
+                html += "<tr>";
+                html += "<td>" + obj.Name + "</td>";
+                html += "<td>" + obj.ProjectName + "</td>";
+                html += "<td>" + obj.CreatedTimeString + "</td>";
+                html += "<td>" + obj.StartTimeString + "</td>";
+                html += "<td>" + obj.EndTimeString + "</td>";
+                html += "<td>" + obj.Status + "</td>";
+                if (obj.IsAccepted === null) {
+                    html += "<td><a href='#' onclick='showEdit(" + obj.Id + "); return false;'>Edit</a></td>";
+                    html += "<td><a href='#' onclick='drop(" + obj.Id + "); return false;'>Delete</a></td>";
+                }
+                html += "</tr>";
+            });
+
+            $("#table-body").html(html);
+        }
+
+        function page(page_index) {
+            let pageCount = Math.ceil(_pagination.array.length / _pagination.perPage);
+            if (page_index > pageCount)
+                page_index = pageCount;
+            else if (page_index < 1)
+                page_index = 1;
+
+            _pagination.currentPage = page_index;
+
+            $("#pagination").html(_pagination.getHtml());
+            display();
+        }
+
+        function first() {
+            _pagination.currentPage = 1;
+            $("#pagination").html(_pagination.getHtml());
+            display();
+        }
+
+        function previus() {
+            _pagination.currentPage = _pagination.currentPage - 1;
+            if (_pagination.currentPage < 1)
+                _pagination.currentPage = 1;
+            $("#pagination").html(_pagination.getHtml());
+            display();
+        }
+
+        function last() {
+            _pagination.currentPage = Math.ceil(_pagination.array.length / _pagination.perPage);
+             $("#pagination").html(_pagination.getHtml());
+            display();
+        }
+
+        function next() {
+            _pagination.currentPage = _pagination.currentPage + 1;
+            if (_pagination.currentPage > Math.ceil(_pagination.array.length / _pagination.perPage))
+                _pagination.currentPage = Math.ceil(_pagination.array.length / _pagination.perPage);
+             $("#pagination").html(_pagination.getHtml());
+            display();
+        }
+    </script>
 }
 else
 {

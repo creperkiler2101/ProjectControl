@@ -29,12 +29,13 @@
                     <h3>End time</h3>
                     <input type="datetime-local" id="end-time-insert" />
                 </div>
-                <div class="checkbox-group">
-                    <label class="checkbox">
-                        <input type="checkbox" id="accepted-insert" />
-                        <span class="checkbox-mark"></span>
-                        <span class="checkbox-text">Is accepted?</span>
-                    </label>
+                <div class="input-box">
+                    <h3>Status</h3>
+                    <select id="status-insert">
+                        <option id="wait-insert">Waiting...</option>
+                        <option id="accepted-insert" value="true">Accepted</option>
+                        <option id="declined-insert" value="false">Declined</option>
+                    </select>
                 </div>
                 <input type="submit" value="Add" />
                 <a href="#" class="button" onclick="hideInsert(); return false;">Hide</a>
@@ -68,12 +69,13 @@
                     <h3>End time</h3>
                     <input type="datetime-local" id="end-time-edit" />
                 </div>
-                <div class="checkbox-group">
-                    <label class="checkbox">
-                        <input type="checkbox" id="accepted-edit" />
-                        <span class="checkbox-mark"></span>
-                        <span class="checkbox-text">Is accepted?</span>
-                    </label>
+                <div class="input-box">
+                    <h3>Status</h3>
+                    <select id="status-edit">
+                        <option id="wait-edit">Waiting...</option>
+                        <option id="accepted-edit" value="true">Accepted</option>
+                        <option id="declined-edit" value="false">Declined</option>
+                    </select>
                 </div>
                 <input type="submit" value="Save" />
                 <a href="#" class="button" onclick="hideEdit(); return false;">Hide</a>
@@ -106,6 +108,7 @@
                         <option selected>Any</option>
                         <option>Waiting...</option>
                         <option>Accepted</option>
+                        <option>Declined</option>
                         <option>In work</option>
                         <option>Completed</option>
                     </select>
@@ -213,7 +216,7 @@
             let start = $("#start-time-insert").val();
             let end = $("#end-time-insert").val();
             let project = $("#project-insert option:selected").val();
-            let status = $("#accepted-insert").is(":checked");
+            let status = $("#status-insert option:selected").val();
 
             let data = {
                 "Name": title,
@@ -225,7 +228,7 @@
             }
 
             $.ajax({
-                url: url,
+                url: url + "?autoStatus=false",
                 data: JSON.stringify(data),
                 contentType: "application/json",
                 method: "post",
@@ -300,7 +303,7 @@
             let start = $("#start-time-edit").val();
             let end = $("#end-time-edit").val();
             let project = $("#project-edit option:selected").val();
-            let status = $("#accepted-edit").is(":checked");
+            let status = $("#status-edit option:selected").val();
 
             let data = {
                 "Id": id,
@@ -375,7 +378,6 @@
                 method: "get",
                 dataType: "json"
             }).done(function (data) {
-                console.log(data);
                 if (data.StatusCode === 200) {
                     obj = data.Tasks[0];
 
@@ -385,7 +387,20 @@
                     $("#description-edit").val(obj.Description);
                     $("#start-time-edit").val(obj.StartTime);
                     $("#end-time-edit").val(obj.EndTime);
-                    $("#accepted-edit").prop('checked', obj.IsAccepted);
+
+                    let status = obj.IsAccepted;
+                    let text = "";
+                    console.log(status);
+                    if (status == null)
+                        text = "Waiting...";
+                    else if (status)
+                        text = "Accepted"
+                    else if (!status)
+                        text = "Declined";
+
+                    $('#status-edit option').filter(function () {
+                        return this.textContent == text
+                    }).prop('selected', true);
 
                     $("#edit").show("fast");
                 }
@@ -405,9 +420,9 @@
                 html += "<td>" + obj.Name + "</td>";
                 html += "<td>" + obj.ProjectName + "</td>";
                 html += "<td>" + obj.CreatorLogin + "</td>";
-                html += "<td>" + obj.CreatedTime + "</td>";
-                html += "<td>" + obj.StartTime + "</td>";
-                html += "<td>" + obj.EndTime + "</td>";
+                html += "<td>" + obj.CreatedTimeString + "</td>";
+                html += "<td>" + obj.StartTimeString + "</td>";
+                html += "<td>" + obj.EndTimeString + "</td>";
                 html += "<td>" + obj.Status + "</td>";
                 html += "<td><a href='#' onclick='showEdit(" + obj.Id + "); return false;'>Edit</a></td>";
                 html += "<td><a href='#' onclick='drop(" + obj.Id + "); return false;'>Delete</a></td>";
