@@ -1,1 +1,16 @@
-﻿
+﻿@if (UserControll.LoggedAs == null)
+{
+    <h2>Hello, user</h2>
+    <p>To use this site you need to log in</p>
+    <a href="../../Home/Login" class="button">Log In</a>
+    <p>Or, if you does not register here yet, do it</p>
+    <a href="../../Home/Register" class="button">Register</a>
+}
+else
+{
+    <h2>Hello, @UserControll.LoggedAs.FullName</h2>
+    <p>You can add new task requests here</p>
+    <a href="../../Task/MakeRequest" class="button">Make request</a>
+    <p>And see all tasks added by you</p>
+    <a href="../../Task/Index" class="button">My requests</a>
+}
