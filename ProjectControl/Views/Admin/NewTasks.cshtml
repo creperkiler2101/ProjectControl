@@ -15,8 +15,15 @@
         <h4>End time: <span id="end-elem"></span></h4>
         <div id="description-elem" style="margin-bottom: 2vw; font-size: 1.5vw; border: 0.5vw solid #A49BFF; padding: 1vw; border-radius: 1vw;"></div>
         <a class="button" href="#" onclick="accept(); return false;">Accept</a>
-        <a class="button" href="#" onclick="decline(); return false;">Decline</a>
+        <a class="button" href="#" onclick="showDecline(); return false;">Decline</a>
         <a class="button" href="#" onclick="hide(); return false;">Hide</a>
+        <div id="confirm-decline" style="display: none;">
+            <div class="input-box">
+                <h3>Cause</h3>
+                <textarea id="cause"></textarea>
+            </div>
+            <a href="#" class="button" onclick="decline(); return false;">Confirm decline</a>
+        </div>
     </div>
     <div id="pagination" class="center"></div>
     <div class="center">
@@ -43,10 +50,20 @@
         const url = '@domain/api/tasks';
         let _pagination = new Pagination();
 
+        function showDecline() {
+            $("#confirm-decline").show("fast");
+        }
+
+        function clearDecline() {
+            $("#confirm-decline").hide("fast");
+            $("#confirm-decline").text("");
+        }
+
         function hide(showLast) {
             if (showLast)
                 $("#last-action").show("fast");
             $("#view-more").hide("fast");
+            clearDecline();
         }
 
         function show(id) {
@@ -141,12 +158,13 @@
             }
 
             $.ajax({
-                url: url,
+                url: url + "?decline=" + $("#cause").val(),
                 data: JSON.stringify(data),
                 contentType: "application/json",
                 method: "put",
                 dataType: "json"
             }).done(function (data) {
+                console.log(data);
                 if (data.StatusCode === 200) {
                     $("#last-action").html("Declined!");
                     hide(true);

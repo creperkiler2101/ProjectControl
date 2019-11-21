@@ -168,7 +168,7 @@ namespace ProjectControl.Controllers
             return responce;
         }
 
-        public TaskResponce Put(Task _task)
+        public TaskResponce Put(Task _task, string decline = null)
         {
             TaskResponce responce = new TaskResponce();
             Task task = db.Tasks.Where(x => x.Id == _task.Id).FirstOrDefault();
@@ -196,12 +196,6 @@ namespace ProjectControl.Controllers
                     responce.StatusCode = 400;
                     responce.ErrorMessage.Add("Title is required");
                 }
-                else if (_task.Name.Length > 10)
-                {
-                    responce.StatusCode = 400;
-                    responce.ErrorMessage.Add("Title max length is 10");
-                }
-
                 if (_task.StartTime == null)
                 {
                     responce.StatusCode = 400;
@@ -231,6 +225,11 @@ namespace ProjectControl.Controllers
                     task.ProjectId = _task.ProjectId;
                     task.IsAccepted = _task.IsAccepted;
                     task.Description = _task.Description;
+
+                    if (decline != null && _task.IsAccepted == false)
+                    {
+                        Email.Send(db.Users.Where(x => x.Login == task.CreatorLogin).FirstOrDefault().Email, "Task " + task.Name + " declined!", "<h1>Your task declined cuz this:</h1><div>" + decline + "</div>");
+                    }
 
                     db.SaveChanges();
                 }
